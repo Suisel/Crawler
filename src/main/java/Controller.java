@@ -12,6 +12,7 @@ import java.io.IOException;
 public class Controller {
     public static void main(String[] args) throws Exception {
 
+        // test
         final int MAX_CRAWL_DEPTH = 0;
         final int NUMBER_OF_CRAWELRS = 1;
         final String CRAWL_STORAGE = "/home/elavelina/IdeaProjects/testCrawl/src/main/resources/result";
