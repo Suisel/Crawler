@@ -4,18 +4,15 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 public class Controller {
-    public static void main(String[] args) throws Exception {
 
-        // test + merge request
-        final int MAX_CRAWL_DEPTH = 0;
-        final int NUMBER_OF_CRAWELRS = 1;
-        final String CRAWL_STORAGE = "/home/elavelina/IdeaProjects/testCrawl/src/main/resources/result";
+    final static int MAX_CRAWL_DEPTH = 2;
+    final static int NUMBER_OF_CRAWELRS = 10;
+    final static String CRAWL_STORAGE = "C:\\Users\\Viktor\\Desktop\\crawlResults";
+    final static String CRAWL_STORAGE_FILE = "C:\\Users\\Viktor\\Desktop\\crawlResults\\output0.txt";
+    final static String SEED_URL = "https://spbu.ru";
+
+    public static void main(String[] args) throws Exception {
 
         /*
          * Instantiate crawl config
@@ -32,26 +29,14 @@ public class Controller {
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-
         /*
          * Add seed URLs
          */
-        controller.addSeed("https://spbu.ru");
+        controller.addSeed(SEED_URL);
 
         /*
          * Start the crawl.
          */
         controller.start(MyCrawler.class, NUMBER_OF_CRAWELRS);
-
-        System.out.println(MyCrawler.counter);
-
-        try {
-            FileOutputStream outputStream = new FileOutputStream("/home/elavelina/IdeaProjects/testCrawl/src/main/resources/output0.txt", true);
-            DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-            dataOutStream.writeUTF("Total link amount: " + MyCrawler.counter);
-            dataOutStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

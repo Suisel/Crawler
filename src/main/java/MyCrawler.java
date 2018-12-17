@@ -2,21 +2,20 @@ import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
-import org.slf4j.Logger;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.*;
-import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static java.sql.DriverManager.getConnection;
-
 public class MyCrawler extends WebCrawler {
-//    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(MyCrawler.class);
+
+    public static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/test";
+    public static final String DB_USERNAME = "postgres";
+    public static final String DB_PASSWORD = "password";
 
     public static int counter = 0;
 
@@ -31,10 +30,18 @@ public class MyCrawler extends WebCrawler {
             "|xml|txt|java|c|cpp|exe" +
             "))$");
 
+    private static boolean isLinkExternal(String link) {
+        String href = link.toLowerCase();
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() &&
+                !href.contains("spbu.ru/") &&
+                !href.contains("fonts.google") &&
+                !href.contains("googletagmanager");
+    }
+
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && !href.startsWith("https://spbu.ru/");
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && !href.startsWith(Controller.SEED_URL);
     }
 
     /**
@@ -43,18 +50,8 @@ public class MyCrawler extends WebCrawler {
      */
     @Override
     public void visit(Page page) {
-        String url = page.getWebURL().getURL();
-        //logger.info("URL: " + url);
-        //System.out.println("URL: " + url);
-        try {
-            FileOutputStream outputStream = new FileOutputStream("/home/elavelina/IdeaProjects/testCrawl/src/main/resources/output0.txt", true);
-            DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-            dataOutStream.writeUTF("URL: " + url + "\n");
-            dataOutStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
+        String url = page.getWebURL().getURL();
 
         if (page.getParseData() instanceof HtmlParseData) {
             HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
@@ -62,52 +59,26 @@ public class MyCrawler extends WebCrawler {
             String html = htmlParseData.getHtml(); //extract html from page
             Set<WebURL> links = htmlParseData.getOutgoingUrls();
 
-            //System.out.println("---------------------------------------------------------");
-//            System.out.println("Page URL: " + url);
-//            System.out.println("Text length: " + text.length());
-//            System.out.println("Html length: " + html.length());
-            //logger.info("Number of outgoing links: " + links.size());
-            try {
-                FileOutputStream outputStream = new FileOutputStream("/home/elavelina/IdeaProjects/testCrawl/src/main/resources/output0.txt", true);
-                DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-                dataOutStream.writeUTF("Number of outgoing links: " + links.size());
-                dataOutStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //System.out.println("Number of outgoing links: " + links.size());
             for (WebURL link : links) {
-                //System.out.println(link);
-                //logger.info(link.toString());
+
                 if (isLinkExternal(link.toString())) {
                     try {
-                        FileOutputStream outputStream = new FileOutputStream("/home/elavelina/IdeaProjects/testCrawl/src/main/resources/output0.txt", true);
+                        FileOutputStream outputStream = new FileOutputStream(Controller.CRAWL_STORAGE_FILE, true);
                         DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-                        dataOutStream.writeUTF("\n" + link.toString());
+                        String toWrite = link.toString() + " " + "Current Depth: " + page.getWebURL().getDepth() +  "\n";
+                        dataOutStream.write(toWrite.getBytes());
                         counter++;
-                        try {
-                            loadLinkToDb(counter, url, link.toString(), 0);
+                        /*try {
+                            loadLinkToDb(counter, url, link.toString(), page.getWebURL().getDepth());
                         } catch (SQLException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                         dataOutStream.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }
-
-            try {
-                FileOutputStream outputStream = new FileOutputStream("/home/elavelina/IdeaProjects/testCrawl/src/main/resources/output0.txt", true);
-                DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-                dataOutStream.writeUTF("\n---------------------------------------------------------\n");
-                dataOutStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //System.out.println("---------------------------------------------------------");
-
-            //if required write content to file
         }
     }
 
@@ -117,7 +88,7 @@ public class MyCrawler extends WebCrawler {
      * @return a Connection object
      */
     public Connection connect() throws SQLException {
-        return DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/test", "postgres", "password");
+        return DriverManager.getConnection(DB_URL, DB_USERNAME, "password");
     }
 
     public void loadLinkToDb(int linkId, String seed, String path, int pageLevel) throws SQLException {
@@ -135,16 +106,7 @@ public class MyCrawler extends WebCrawler {
         pstmt.setInt(4, pageLevel);
 
         pstmt.executeUpdate();
-            // check the affected rows
 
         conn.close();
-    }
-
-    private static boolean isLinkExternal(String link) {
-        String href = link.toLowerCase();
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() &&
-                !href.contains("spbu.ru/") &&
-                !href.contains("fonts.google") &&
-                !href.contains("googletagmanager") ;
     }
 }
