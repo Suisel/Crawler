@@ -33,7 +33,7 @@ public class MyCrawler extends WebCrawler {
     private static boolean isLinkExternal(String link) {
         String href = link.toLowerCase();
         return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() &&
-                !href.contains("spbu.ru/") &&
+                !href.contains("gazprom") &&
                 !href.contains("fonts.google") &&
                 !href.contains("googletagmanager");
     }
@@ -41,7 +41,7 @@ public class MyCrawler extends WebCrawler {
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && !href.startsWith(Controller.SEED_URL);
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches();
     }
 
     /**
@@ -62,22 +62,23 @@ public class MyCrawler extends WebCrawler {
             for (WebURL link : links) {
 
                 if (isLinkExternal(link.toString())) {
-                    try {
-                        FileOutputStream outputStream = new FileOutputStream(Controller.CRAWL_STORAGE_FILE, true);
-                        DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-                        String toWrite = link.toString() + " " + "Current Depth: " + page.getWebURL().getDepth() +  "\n";
-                        dataOutStream.write(toWrite.getBytes());
+//                    try {
+//                        FileOutputStream outputStream = new FileOutputStream(Controller.CRAWL_STORAGE_FILE, true);
+//                        DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
+//                        String toWrite = link.toString() + " " + "Current Depth: " + page.getWebURL().getDepth() +  "\n";
+//                        dataOutStream.write(toWrite.getBytes());
                         counter++;
-                        /*try {
+                        try {
                             loadLinkToDb(counter, url, link.toString(), page.getWebURL().getDepth());
                         } catch (SQLException e) {
                             e.printStackTrace();
-                        }*/
-                        dataOutStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                        }
+//                        dataOutStream.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
+
             }
         }
     }
@@ -93,7 +94,7 @@ public class MyCrawler extends WebCrawler {
 
     public void loadLinkToDb(int linkId, String seed, String path, int pageLevel) throws SQLException {
 
-        String SQL = "INSERT INTO testtable(link_id, seed, link_path, page_level) "
+        String SQL = "INSERT INTO table_gazprom1(link_id, seed, link_path, page_level) "
                 + "VALUES(?,?,?,?)";
 
         Connection conn = connect();

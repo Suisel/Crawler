@@ -6,11 +6,11 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class Controller {
 
-    final static int MAX_CRAWL_DEPTH = 2;
+    final static int MAX_CRAWL_DEPTH = 4;
     final static int NUMBER_OF_CRAWELRS = 10;
-    final static String CRAWL_STORAGE = "C:\\Users\\Viktor\\Desktop\\crawlResults";
-    final static String CRAWL_STORAGE_FILE = "C:\\Users\\Viktor\\Desktop\\crawlResults\\output0.txt";
-    final static String SEED_URL = "https://spbu.ru";
+    final static String CRAWL_STORAGE = "/home/elavelina/Desktop/crawlResults";
+    final static String CRAWL_STORAGE_FILE = "/home/elavelina/Desktop/output0.txt";
+    final static String SEED_URL = "http://www.gazprom.ru/";
 
     public static void main(String[] args) throws Exception {
 
