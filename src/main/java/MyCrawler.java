@@ -20,6 +20,8 @@ public class MyCrawler extends WebCrawler {
 
     public static int counter = 0;
 
+    private static Connection conn = connect();
+
     private static Pattern FILE_ENDING_EXCLUSION_PATTERN = Pattern.compile(".*(\\.(" +
             "css|js" +
             "|bmp|gif|jpe?g|JPE?G|png|tiff?|ico|nef|raw" +
@@ -116,8 +118,15 @@ public class MyCrawler extends WebCrawler {
      *
      * @return a Connection object
      */
-    public Connection connect() throws SQLException {
-        return DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/test", "postgres", "password");
+    public static Connection connect() {
+
+        Connection connection = null;
+        try {
+             connection = getConnection("jdbc:postgresql://127.0.0.1:5432/test", "postgres", "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return connection;
     }
 
     public void loadLinkToDb(int linkId, String seed, String path, int pageLevel) throws SQLException {
@@ -125,7 +134,6 @@ public class MyCrawler extends WebCrawler {
         String SQL = "INSERT INTO testtable(link_id, seed, link_path, page_level) "
                 + "VALUES(?,?,?,?)";
 
-        Connection conn = connect();
         PreparedStatement pstmt = conn.prepareStatement(SQL,
                 Statement.RETURN_GENERATED_KEYS);
 
@@ -136,8 +144,6 @@ public class MyCrawler extends WebCrawler {
 
         pstmt.executeUpdate();
             // check the affected rows
-
-        conn.close();
     }
 
     private static boolean isLinkExternal(String link) {
