@@ -17,6 +17,7 @@ public class MyCrawler extends WebCrawler {
     public static final String DB_USERNAME = "postgres";
     public static final String DB_PASSWORD = "password";
 
+    public static Connection connection = connect();
     public static int counter = 0;
 
     private static Pattern FILE_ENDING_EXCLUSION_PATTERN = Pattern.compile(".*(\\.(" +
@@ -88,8 +89,14 @@ public class MyCrawler extends WebCrawler {
      *
      * @return a Connection object
      */
-    public Connection connect() throws SQLException {
-        return DriverManager.getConnection(DB_URL, DB_USERNAME, "password");
+    public static Connection connect() {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DB_URL, DB_USERNAME, "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return connection;
     }
 
     public void loadLinkToDb(int linkId, String seed, String path, int pageLevel) throws SQLException {
@@ -97,8 +104,7 @@ public class MyCrawler extends WebCrawler {
         String SQL = "INSERT INTO table_gazprom1(link_id, seed, link_path, page_level) "
                 + "VALUES(?,?,?,?)";
 
-        Connection conn = connect();
-        PreparedStatement pstmt = conn.prepareStatement(SQL,
+        PreparedStatement pstmt = connection.prepareStatement(SQL,
                 Statement.RETURN_GENERATED_KEYS);
 
         pstmt.setInt(1, linkId);
@@ -107,7 +113,5 @@ public class MyCrawler extends WebCrawler {
         pstmt.setInt(4, pageLevel);
 
         pstmt.executeUpdate();
-
-        conn.close();
     }
 }
