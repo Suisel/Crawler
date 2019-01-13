@@ -6,7 +6,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class Controller {
 
-    final static int MAX_CRAWL_DEPTH = 4;
+    final static int MAX_CRAWL_DEPTH = -1;
     final static int NUMBER_OF_CRAWELRS = 10;
     final static String CRAWL_STORAGE = "/home/elavelina/Desktop/crawlResults";
     final static String CRAWL_STORAGE_FILE = "/home/elavelina/Desktop/output0.txt";

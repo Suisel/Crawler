@@ -34,15 +34,16 @@ public class MyCrawler extends WebCrawler {
     private static boolean isLinkExternal(String link) {
         String href = link.toLowerCase();
         return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() &&
-                !href.contains("gazprom") &&
+                !href.contains("gazprom.ru") &&
                 !href.contains("fonts.google") &&
                 !href.contains("googletagmanager");
     }
 
+
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches();
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.startsWith("www.gazprom.ru");
     }
 
     /**
@@ -56,11 +57,17 @@ public class MyCrawler extends WebCrawler {
 
         if (page.getParseData() instanceof HtmlParseData) {
             HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
-            String text = htmlParseData.getText(); //extract text from page
-            String html = htmlParseData.getHtml(); //extract html from page
+            //String text = htmlParseData.getText(); //extract text from page
+            //String html = htmlParseData.getHtml(); //extract html from page
             Set<WebURL> links = htmlParseData.getOutgoingUrls();
 
-            for (WebURL link : links) {
+            for (WebURL l : links) {
+
+                String link = l.toString().split("://")[1];
+                link = link.substring(0, link.length() - (link.endsWith("/") ? 1 : 0));
+                if (!link.startsWith("www."))
+                    link = "www." + link;
+                String seed = url.split("://")[1].split("/")[0];
 
                 if (isLinkExternal(link.toString())) {
 //                    try {
@@ -70,7 +77,12 @@ public class MyCrawler extends WebCrawler {
 //                        dataOutStream.write(toWrite.getBytes());
                         counter++;
                         try {
-                            loadLinkToDb(counter, url, link.toString(), page.getWebURL().getDepth());
+
+                            if (isLinkInDB(seed, link))
+                                updateLinkToDb(seed, link);
+                            else
+                                loadLinkToDb(counter, seed, link, 1);
+
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -99,19 +111,49 @@ public class MyCrawler extends WebCrawler {
         return connection;
     }
 
-    public void loadLinkToDb(int linkId, String seed, String path, int pageLevel) throws SQLException {
+    public static void updateLinkToDb(String seed, String path) throws SQLException {
+        String SQL1 = "UPDATE table_gazprom_ru_new " +
+                      "SET page_amount = " +
+                        "(SELECT page_amount FROM table_gazprom_ru_new " +
+                            "WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
+                      "WHERE link_path = '" + path + "'AND seed = '" + seed + "')";
+        PreparedStatement pstmt1 = connection.prepareStatement(SQL1,
+                Statement.RETURN_GENERATED_KEYS);
+        pstmt1.executeUpdate();
+    }
 
-        String SQL = "INSERT INTO table_gazprom1(link_id, seed, link_path, page_level) "
+    public void loadLinkToDb(int linkId, String seed, String path, int pageAmount) throws SQLException {
+
+        String SQL = "INSERT INTO table_gazprom_ru_new(link_id, seed, link_path, page_amount) "
                 + "VALUES(?,?,?,?)";
 
-        PreparedStatement pstmt = connection.prepareStatement(SQL,
-                Statement.RETURN_GENERATED_KEYS);
 
-        pstmt.setInt(1, linkId);
-        pstmt.setString(2, seed);
-        pstmt.setString(3, path);
-        pstmt.setInt(4, pageLevel);
 
-        pstmt.executeUpdate();
+            PreparedStatement pstmt = connection.prepareStatement(SQL,
+                    Statement.RETURN_GENERATED_KEYS);
+
+            pstmt.setInt(1, linkId);
+            pstmt.setString(2, seed);
+            pstmt.setString(3, path);
+            pstmt.setInt(4, pageAmount);
+
+            pstmt.executeUpdate();
+        }
+
+    public boolean isLinkInDB(String seed, String link) throws SQLException {
+        String SQL = "SELECT link_path FROM table_gazprom_ru_new WHERE link_path = '" + link + "' AND " +
+                "seed = '" + seed + "'";
+        PreparedStatement pstmt = connection.prepareStatement(SQL);
+        ResultSet resultSet = pstmt.executeQuery();
+
+        return resultSet.next();
     }
+
+//    public static void main(String[] args) {
+//        try {
+//            updateLinkToDb( "www.gazprom-agnks.ru");
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
