@@ -43,7 +43,7 @@ public class MyCrawler extends WebCrawler {
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.startsWith("www.gazprom.ru");
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.contains("www.gazprom.ru");
     }
 
     /**
@@ -112,11 +112,11 @@ public class MyCrawler extends WebCrawler {
     }
 
     public static void updateLinkToDb(String seed, String path) throws SQLException {
-        String SQL1 = "UPDATE table_gazprom_ru_new " +
+        String SQL1 = "UPDATE table_gazprom_ru_new_try2 " +
                       "SET page_amount = " +
                         "(SELECT page_amount FROM table_gazprom_ru_new " +
                             "WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
-                      "WHERE link_path = '" + path + "'AND seed = '" + seed + "')";
+                      "WHERE link_path = '" + path + "'AND seed = '" + seed + "'";
         PreparedStatement pstmt1 = connection.prepareStatement(SQL1,
                 Statement.RETURN_GENERATED_KEYS);
         pstmt1.executeUpdate();
@@ -124,7 +124,7 @@ public class MyCrawler extends WebCrawler {
 
     public void loadLinkToDb(int linkId, String seed, String path, int pageAmount) throws SQLException {
 
-        String SQL = "INSERT INTO table_gazprom_ru_new(link_id, seed, link_path, page_amount) "
+        String SQL = "INSERT INTO table_gazprom_ru_new_try2(link_id, seed, link_path, page_amount) "
                 + "VALUES(?,?,?,?)";
 
 
@@ -141,7 +141,7 @@ public class MyCrawler extends WebCrawler {
         }
 
     public boolean isLinkInDB(String seed, String link) throws SQLException {
-        String SQL = "SELECT link_path FROM table_gazprom_ru_new WHERE link_path = '" + link + "' AND " +
+        String SQL = "SELECT link_path FROM table_gazprom_ru_new_try2 WHERE link_path = '" + link + "' AND " +
                 "seed = '" + seed + "'";
         PreparedStatement pstmt = connection.prepareStatement(SQL);
         ResultSet resultSet = pstmt.executeQuery();
