@@ -1,3 +1,5 @@
+package crawler;
+
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -64,9 +66,16 @@ public class MyCrawler extends WebCrawler {
             for (WebURL l : links) {
 
                 String link = l.toString().split("://")[1];
-                link = link.substring(0, link.length() - (link.endsWith("/") ? 1 : 0));
-                if (!link.startsWith("www."))
-                    link = "www." + link;
+                link = link.split("/")[0];
+
+                boolean isStartedWithWWW = true;
+                String linkWithWWWPrefix = link;
+
+                if (!link.startsWith("www.")) {
+                    isStartedWithWWW = false;
+                    linkWithWWWPrefix = "www." + link;
+                }
+
                 String seed = url.split("://")[1].split("/")[0];
 
                 if (isLinkExternal(link.toString())) {
@@ -78,10 +87,18 @@ public class MyCrawler extends WebCrawler {
                         counter++;
                         try {
 
-                            if (isLinkInDB(seed, link))
-                                updateLinkToDb(seed, link);
-                            else
-                                loadLinkToDb(counter, seed, link, 1);
+                            if (isLinkInDB(seed, linkWithWWWPrefix)) {
+                                if (isStartedWithWWW)
+                                    updateLinkWithWWWPrefixToDb(seed, linkWithWWWPrefix);
+                                else
+                                    updateLinkToDb(seed, linkWithWWWPrefix);
+                            }
+                            else {
+                                if (isStartedWithWWW)
+                                    loadLinkToDb(counter, seed, linkWithWWWPrefix, 1, 0);
+                                else
+                                    loadLinkToDb(counter, seed, linkWithWWWPrefix, 0, 1);
+                            }
 
                         } catch (SQLException e) {
                             e.printStackTrace();
@@ -112,9 +129,9 @@ public class MyCrawler extends WebCrawler {
     }
 
     public static void updateLinkToDb(String seed, String path) throws SQLException {
-        String SQL1 = "UPDATE table_gazprom_ru_new_try2 " +
+        String SQL1 = "UPDATE table_gazprom_ru " +
                       "SET page_amount = " +
-                        "(SELECT page_amount FROM table_gazprom_ru_new " +
+                        "(SELECT page_amount FROM table_gazprom_ru " +
                             "WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
                       "WHERE link_path = '" + path + "'AND seed = '" + seed + "'";
         PreparedStatement pstmt1 = connection.prepareStatement(SQL1,
@@ -122,10 +139,21 @@ public class MyCrawler extends WebCrawler {
         pstmt1.executeUpdate();
     }
 
-    public void loadLinkToDb(int linkId, String seed, String path, int pageAmount) throws SQLException {
+    public static void updateLinkWithWWWPrefixToDb(String seed, String path) throws SQLException {
+        String SQL1 = "UPDATE table_gazprom_ru " +
+                "SET page_amount_www = " +
+                "(SELECT page_amount_www FROM table_gazprom_ru " +
+                "WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
+                "WHERE link_path = '" + path + "'AND seed = '" + seed + "'";
+        PreparedStatement pstmt1 = connection.prepareStatement(SQL1,
+                Statement.RETURN_GENERATED_KEYS);
+        pstmt1.executeUpdate();
+    }
 
-        String SQL = "INSERT INTO table_gazprom_ru_new_try2(link_id, seed, link_path, page_amount) "
-                + "VALUES(?,?,?,?)";
+    public void loadLinkToDb(int linkId, String seed, String path, int pageAmountWWW, int pageAmount) throws SQLException {
+
+        String SQL = "INSERT INTO table_gazprom_ru(link_id, seed, link_path, page_amount_www, page_amount) "
+                + "VALUES(?,?,?,?,?)";
 
 
 
@@ -135,13 +163,14 @@ public class MyCrawler extends WebCrawler {
             pstmt.setInt(1, linkId);
             pstmt.setString(2, seed);
             pstmt.setString(3, path);
-            pstmt.setInt(4, pageAmount);
+            pstmt.setInt(4, pageAmountWWW);
+            pstmt.setInt(5, pageAmount);
 
             pstmt.executeUpdate();
         }
 
     public boolean isLinkInDB(String seed, String link) throws SQLException {
-        String SQL = "SELECT link_path FROM table_gazprom_ru_new_try2 WHERE link_path = '" + link + "' AND " +
+        String SQL = "SELECT link_path FROM table_gazprom_ru WHERE link_path = '" + link + "' AND " +
                 "seed = '" + seed + "'";
         PreparedStatement pstmt = connection.prepareStatement(SQL);
         ResultSet resultSet = pstmt.executeQuery();
