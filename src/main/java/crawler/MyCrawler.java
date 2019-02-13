@@ -84,6 +84,7 @@ public class MyCrawler extends WebCrawler {
 //                        DataOutputStream dataOutStream = new DataOutputStream(new BufferedOutputStream(outputStream));
 //                        String toWrite = link.toString() + " " + "Current Depth: " + page.getWebURL().getDepth() +  "\n";
 //                        dataOutStream.write(toWrite.getBytes());
+
                         counter++;
                         try {
 
@@ -103,6 +104,7 @@ public class MyCrawler extends WebCrawler {
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
+                        
 //                        dataOutStream.close();
 //                    } catch (IOException e) {
 //                        e.printStackTrace();
