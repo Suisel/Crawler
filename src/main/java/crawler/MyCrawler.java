@@ -11,6 +11,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -24,8 +27,9 @@ public class MyCrawler extends WebCrawler {
     public static int counter = 0;
 
 
-    public static final String currentTable = "ecogas_ru";
-    public static final String currentSeed = "eco-gas.ru";
+    public static String currentTable = "gazprom_football_com";
+    public static String currentSeed = "www.gazprom-football.com";
+    public static String currentDomain = "www.gazprom-football.com";
 
     private static Pattern FILE_ENDING_EXCLUSION_PATTERN = Pattern.compile(".*(\\.(" +
             "css|js" +
@@ -41,7 +45,8 @@ public class MyCrawler extends WebCrawler {
     private static boolean isLinkExternal(String link) {
         String href = link.toLowerCase();
         return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() &&
-                !href.contains("gazprom.ru") &&
+                //!href.contains("gazprom.ru") &&
+                !href.contains(currentDomain) &&
                 !href.contains("fonts.google") &&
                 !href.contains("googletagmanager");
     }
@@ -50,7 +55,8 @@ public class MyCrawler extends WebCrawler {
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.contains("www.gazprom.ru");
+        //return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.contains("www.gazprom.ru");
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.contains(currentSeed);
     }
 
     /**
@@ -144,10 +150,10 @@ public class MyCrawler extends WebCrawler {
     }
 
     public static void updateLinkToDb(String seed, String path) throws SQLException {
-        String SQL1 = "UPDATE table_gazprom_ru_test " +
-                      "SET page_amount = " +
-                        "(SELECT page_amount FROM table_gazprom_ru_test " +
-                            "WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
+        String SQL1 = "UPDATE " + currentTable  +
+                      " SET page_amount = " +
+                        "(SELECT page_amount FROM " + currentTable +
+                            " WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
                       "WHERE link_path = '" + path + "'AND seed = '" + seed + "'";
         PreparedStatement pstmt1 = connection.prepareStatement(SQL1,
                 Statement.RETURN_GENERATED_KEYS);
@@ -155,10 +161,10 @@ public class MyCrawler extends WebCrawler {
     }
 
     public static void updateLinkWithWWWPrefixToDb(String seed, String path) throws SQLException {
-        String SQL1 = "UPDATE table_gazprom_ru_test " +
-                "SET page_amount_www = " +
-                "(SELECT page_amount_www FROM table_gazprom_ru_test " +
-                "WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
+        String SQL1 = "UPDATE " + currentTable +
+                " SET page_amount_www = " +
+                "(SELECT page_amount_www FROM " + currentTable +
+                " WHERE link_path = '" + path + "' AND seed = '" + seed + "') + 1 " +
                 "WHERE link_path = '" + path + "'AND seed = '" + seed + "'";
         PreparedStatement pstmt1 = connection.prepareStatement(SQL1,
                 Statement.RETURN_GENERATED_KEYS);
@@ -167,7 +173,7 @@ public class MyCrawler extends WebCrawler {
 
     public void loadLinkToDb(int linkId, String seed, String path, int pageAmountWWW, int pageAmount) throws SQLException {
 
-        String SQL = "INSERT INTO table_gazprom_ru_test(link_id, seed, link_path, page_amount_www, page_amount) "
+        String SQL = "INSERT INTO " + currentTable + "(link_id, seed, link_path, page_amount_www, page_amount) "
                 + "VALUES(?,?,?,?,?)";
 
 
@@ -185,13 +191,28 @@ public class MyCrawler extends WebCrawler {
         }
 
     public boolean isLinkInDB(String seed, String link) throws SQLException {
-        String SQL = "SELECT link_path FROM table_gazprom_ru_test WHERE link_path = '" + link + "' AND " +
+        String SQL = "SELECT link_path FROM " + currentTable + " WHERE link_path = '" + link + "' AND " +
                 "seed = '" + seed + "'";
         PreparedStatement pstmt = connection.prepareStatement(SQL);
         ResultSet resultSet = pstmt.executeQuery();
 
         return resultSet.next();
     }
+
+//    public Map<String, String> getLinkList() throws SQLException {
+//        Map<String, String> linkList = new HashMap<>();
+//
+//        String SQL_getLinks = "SELECT seed_url, tables_url FROM link_list";
+//        PreparedStatement pstmt = connection.prepareStatement(SQL_getLinks);
+//        ResultSet resultSet = pstmt.executeQuery();
+//
+//        while (resultSet.next()) {
+//            linkList.put(resultSet.getString("seed_url"), resultSet.getString("tables_url"));
+//        }
+//
+//        return linkList;
+//
+//    }
 
 //    public static void main(String[] args) {
 //        try {
