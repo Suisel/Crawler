@@ -19,4 +19,7 @@ insert into link_list(seed_url) values ('https://www.gazprom-energy.co.uk/');
 insert into link_list(seed_url) values ('http://polyanaski.ru/');
 
 update link_list
-set tables_url = replace(replace(split_part(regexp_replace(rtrim(seed_url, '/'), '^https?://(www.)?' , ''), '/', 1), '.' , '_'), '-', '_')
+set tables_url = replace(replace(split_part(regexp_replace(rtrim(trim(seed_url), '/'), '^https?://(www.)?' , ''), '/', 1), '.' , '_'), '-', '_')
+
+update link_list
+set seed_url = trim(seed_url);

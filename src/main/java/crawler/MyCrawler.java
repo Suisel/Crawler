@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static crawler.Controller.SEED_URL;
+
 public class MyCrawler extends WebCrawler {
 
     public static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/test";
@@ -27,9 +29,9 @@ public class MyCrawler extends WebCrawler {
     public static int counter = 0;
 
 
-    public static String currentTable = "gazprom_football_com";
-    public static String currentSeed = "www.gazprom-football.com";
-    public static String currentDomain = "www.gazprom-football.com";
+    public static String currentTable = "eco_gas_ru";
+    public static String currentSeed = SEED_URL.split("://")[1].split("/")[0];
+    public static String currentDomain = SEED_URL.split("://")[1].split("/")[0];
 
     private static Pattern FILE_ENDING_EXCLUSION_PATTERN = Pattern.compile(".*(\\.(" +
             "css|js" +

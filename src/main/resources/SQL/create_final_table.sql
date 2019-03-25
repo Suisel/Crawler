@@ -26,15 +26,15 @@ begin
 			 DECLARE	
 				v_row record;
 			 BEGIN
-				truncate table ' || i || '_final;
-				ALTER SEQUENCE ' || i || '_final_link_id_seq RESTART WITH 1;
+				--truncate table ' || i || '_final;
+				--ALTER SEQUENCE ' || i || '_final_link_id_seq RESTART WITH 1;
 				FOR v_row in (select * from ' || i || ')
 							LOOP
 									if (v_row.page_amount_www > v_row.page_amount) then
-										insert into ' || i || '_final(seed, link_path, page_amount)
+										insert into final_table(seed, link_path, page_amount)
 										values (v_row.seed, v_row.link_path, (v_row.page_amount + v_row.page_amount_www));
 									else
-										insert into ' || i || '_final(seed, link_path, page_amount)
+										insert into final_table(seed, link_path, page_amount)
 										values (v_row.seed, substring(v_row.link_path, 5), (v_row.page_amount + v_row.page_amount_www));
 									end if;
 							END LOOP;

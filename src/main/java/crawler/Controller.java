@@ -12,7 +12,7 @@ public class Controller {
     final static int NUMBER_OF_CRAWELRS = 10;
     final static String CRAWL_STORAGE = "/home/elavelina/Desktop/crawlResults";
     final static String CRAWL_STORAGE_FILE = "/home/elavelina/Desktop/output0.txt";
-    final static String SEED_URL = "http://www.gazprom-football.com/";
+    final static String SEED_URL = "http://www.mtk-52.ru/";
 
     public static void main(String[] args) throws Exception {
 

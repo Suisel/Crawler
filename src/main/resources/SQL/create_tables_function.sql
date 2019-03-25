@@ -4,7 +4,7 @@ declare
 	str_final varchar;
 	i varchar;
 begin
-	for i in (select tables_url from link_list)
+	for i in (select tables_url from link_list where link_id between 1 and 20 order by link_id asc)
 		loop
 			str = 'CREATE TABLE ' || i ||
 					'(
@@ -14,16 +14,16 @@ begin
 						page_amount_www integer,
 					  	page_amount integer
 					)';	
-			str_final = 'CREATE TABLE ' || i || '_final  
-						(
-							link_id serial,
-							seed varchar,
-							link_path varchar,
-							page_amount integer
-						)';	
+-- 			str_final = 'CREATE TABLE ' || i || '_final  
+-- 						(
+-- 							link_id serial,
+-- 							seed varchar,
+-- 							link_path varchar,
+-- 							page_amount integer
+-- 						)';	
 			--raise notice '%', str_final;
 			execute str;
-			execute str_final;
+			--execute str_final;
 		end loop;
 end
 $$;
@@ -44,4 +44,3 @@ begin
 		end loop;
 end
 $$;
-
