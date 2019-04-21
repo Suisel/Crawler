@@ -29,7 +29,7 @@ public class MyCrawler extends WebCrawler {
     public static int counter = 0;
 
 
-    public static String currentTable = "eco_gas_ru";
+    public static String currentTable = "gazprom_com";
     public static String currentSeed = SEED_URL.split("://")[1].split("/")[0];
     public static String currentDomain = SEED_URL.split("://")[1].split("/")[0];
 
@@ -50,7 +50,8 @@ public class MyCrawler extends WebCrawler {
                 //!href.contains("gazprom.ru") &&
                 !href.contains(currentDomain) &&
                 !href.contains("fonts.google") &&
-                !href.contains("googletagmanager");
+                !href.contains("googletagmanager") &&
+                !href.contains("accounts.google.com") ;
     }
 
 
@@ -58,7 +59,9 @@ public class MyCrawler extends WebCrawler {
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
         //return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.contains("www.gazprom.ru");
-        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches() && href.contains(currentSeed);
+        return !FILE_ENDING_EXCLUSION_PATTERN.matcher(href).matches()
+                && href.contains(currentSeed)
+                && !href.contains("www.instagram.com");
     }
 
     /**
