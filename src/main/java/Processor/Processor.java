@@ -22,16 +22,37 @@ public class Processor {
     private static String SQL_OUTGOING_LINKS = "SELECT seed, link_path, page_amount as amount "
             + "FROM final_table";
 
-    private static String SQL_LINK_LIST = "SELECT seed_url FROM link_list";
+    private static String SQL_TIC = "select seed, tic from link_list_final";
+
+    private static String[] linkVector;
+    private static int[] ticVector;
+    private static int[] lVector;
+    private static int permutationCounter = 0;
+
 
     public static void main(String[] args) throws SQLException {
-        Map<String, Integer> allOutgoingLinks = getAllOutgoingLinks();
         List<Linker> gazpromOutgoingLinks = getGazpromOutgoingLinks();
         List<Linker> linkers = testIfDuplicate(gazpromOutgoingLinks);
 
-        getCorrectOutgoingLinks(getAllLinksFromDb());
+        List<Linker> correctOutgoingLinks = getCorrectOutgoingLinks(getAllLinksFromDb());
+        int[][] linkMatrix = createLinkMatrix(correctOutgoingLinks);
 
-        int[][] linkMatrix = createLinkMatrix(getCorrectOutgoingLinks(getAllLinksFromDb()));
+        createTICVector();
+        createLVector();
+
+        int[][] rebuildMatrix = rebuildMatrix(linkMatrix);
+
+        for (int i = 0; i < linkVector.length; i++) {
+            System.out.println(linkVector[i] + " " + lVector[i]);
+        }
+
+        for (int i = 0; i < rebuildMatrix.length; i++) {
+            System.out.println();
+            for (int j = 0; j < rebuildMatrix.length; j++) {
+                System.out.println(rebuildMatrix[i][j] + " ");
+            }
+        }
+
     }
 
     private static List<Linker> getAllLinksFromDb() throws SQLException {
@@ -97,7 +118,7 @@ public class Processor {
         linkerList.forEach(linker -> { linkSet.add(linker.getSeed());
             linkSet.add(linker.getLinkPath());});
 
-        String[] linkVector = linkSet.toArray(new String[linkSet.size()]);
+        linkVector = linkSet.toArray(new String[linkSet.size()]);
 
         int[][] linkMatrix = new int[linkVector.length][linkVector.length];
 
@@ -119,7 +140,85 @@ public class Processor {
             linkMatrix[seedIndex][linkPathIndex] = 1;
         }
 
+        for (int i = 0; i < linkVector.length; i++) {
+            linkMatrix[i][i] = 0;
+        }
+
         return linkMatrix;
+    }
+
+    private static void createTICVector() throws SQLException {
+
+        Map<String, Integer> tic = getTic();
+
+        ticVector = new int[linkVector.length];
+
+        for (String ticLink : tic.keySet()) {
+            for (int i = 0; i < linkVector.length; i++) {
+                if (linkVector[i].equals(ticLink)) {
+                    ticVector[i] = tic.get(ticLink);
+                }
+            }
+        }
+    }
+
+    private static void createLVector() throws SQLException {
+        Map<String, Integer> allOutgoingLinks = getAllOutgoingLinks();
+
+        lVector = new int[linkVector.length];
+
+        for (String link : allOutgoingLinks.keySet()) {
+            for (int i = 0; i < linkVector.length; i++) {
+                if (linkVector[i].equals(link)) {
+                    lVector[i] = allOutgoingLinks.get(link);
+                }
+            }
+        }
+    }
+
+    private static double getKCoefValue(int[][] linkMatrix) {
+
+        double k = 0.0;
+
+        for (int tic : ticVector) {
+            k += tic;
+        }
+
+
+        for (int i = 0; i < ticVector.length; i++) {
+            double addend = 0.0;
+
+            for (int j = 0; j < ticVector.length; j++) {
+                addend += linkMatrix[i][j];
+            }
+
+            addend = (addend * ticVector[i]) / lVector[i];
+
+            k += addend;
+        }
+
+        k /= ticVector.length;
+
+        return k;
+    }
+
+    private static double getFuncValue(int[][] linkMatrix) {
+
+        double jSum = 0.0;
+
+        for (int j = 0; j < ticVector.length; j++) {
+
+            double iSum = 0.0;
+
+            for (int i = 0; i < ticVector.length; i++) {
+                iSum += linkMatrix[i][j] * ticVector[i] / lVector[i];
+            }
+
+            jSum += (getKCoefValue(linkMatrix) - ticVector[j] - iSum) * (getKCoefValue(linkMatrix) - ticVector[j] - iSum);
+
+        }
+
+        return jSum;
     }
 
     private static Map<String, Integer> getAllOutgoingLinks() throws SQLException {
@@ -158,6 +257,138 @@ public class Processor {
         }
     }
 
+    private static Map<String, Integer> getTic() throws SQLException {
+        try (Connection connection = MyCrawler.connect()) {
+            Map<String, Integer> tic;
+            try (PreparedStatement pstmt1 = connection.prepareStatement(SQL_TIC,
+                    Statement.RETURN_GENERATED_KEYS)) {
+                try (ResultSet resultSet = pstmt1.executeQuery()) {
+                    tic = new HashMap<>();
+                    while (resultSet.next()) {
+                        tic.put(resultSet.getString("seed"), resultSet.getInt("tic"));
+                    }
+                }
+            }
+            return tic;
+        }
+    }
 
+
+    private static int[] getOnesVector(int[][] matrix) {
+        int[] onesVector = new int[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            onesVector[i] = 0;
+        }
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix.length; j++) {
+                if (matrix[i][j] == 1) {
+                    onesVector[i]++;
+                }
+            }
+        }
+
+        return onesVector;
+    }
+
+    private static int calculateFunctional(int[][] matrix) {
+        int sum = 0;
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix.length; j++) {
+                int value = matrix[i][j];
+                for (int k = 1; k < matrix.length - j; k++) {
+                    value = value * 10;
+                }
+                sum += value;
+            }
+        }
+
+        return sum;
+    }
+
+    private static int[][] rebuildMatrix(int[][] matrix) {
+        double minValue = getFuncValue(matrix);
+
+        int[][] buildedMatrix = new int[matrix.length][matrix.length];
+        int[][] optimizedMatrix = new int[matrix.length][matrix.length];
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix.length; j++) {
+                buildedMatrix[i][j] = matrix[i][j];
+                optimizedMatrix[i][j] = matrix[i][j];
+            }
+        }
+
+        for (int i = 0; i < matrix.length; i++) {
+            doBinaryPermutation(new int[matrix.length], matrix.length, countOnes(buildedMatrix[i]),
+                    buildedMatrix, optimizedMatrix, i);
+        }
+
+        return optimizedMatrix;
+    }
+
+    private static void doBinaryPermutation(int[] line, int size, int onesNum,
+                                            int[][] buildedMatrix, int[][] optimizedMatrix, int rowNum) {
+        System.out.println(permutationCounter++);
+        if (size == 0) {
+            if (countOnes(line) == onesNum) {
+                for (int j = 0; j < line.length; j++) {
+                    buildedMatrix[rowNum][j] = line[j];
+                }
+                doCalcluation(buildedMatrix, optimizedMatrix);
+            }
+        }
+        else {
+            if (countOnes(line) == onesNum) {
+                int[] fullLine = new int[line.length];
+                for (int i = 0; i < line.length; i++) {
+                    fullLine[i] = line[i];
+                }
+                for (int i = line.length - size; i < line.length; i++) {
+                    fullLine[i] = 0;
+                }
+                doBinaryPermutation(fullLine, 0, onesNum, buildedMatrix, optimizedMatrix, rowNum);
+            } else {
+                int[] newLineZero = new int[line.length];
+                for (int j = 0; j < line.length; j++) {
+                    newLineZero[j] = line[j];
+                }
+                newLineZero[newLineZero.length - size] = 0;
+                doBinaryPermutation(newLineZero, size - 1, onesNum, buildedMatrix, optimizedMatrix, rowNum);
+                int[] newLineOne = new int[line.length];
+                for (int j = 0; j < line.length; j++) {
+                    newLineOne[j] = line[j];
+                }
+                newLineOne[newLineOne.length - size] = 1;
+                doBinaryPermutation(newLineOne, size - 1, onesNum, buildedMatrix, optimizedMatrix, rowNum);
+            }
+        }
+    }
+
+    private static void doCalcluation(int[][] buildedMatrix, int[][] optimizedMatrix) {
+        if (calculateFunctional(buildedMatrix) < calculateFunctional(optimizedMatrix)) {
+            for (int i = 0; i < buildedMatrix.length; i++) {
+                for (int j = 0; j < buildedMatrix.length; j++)
+                    optimizedMatrix[i][j] = buildedMatrix[i][j];
+            }
+        } else {
+            for (int i = 0; i < buildedMatrix.length; i++) {
+                for (int j = 0; j < buildedMatrix.length; j++)
+                    buildedMatrix[i][j] = optimizedMatrix[i][j];
+            }
+        }
+    }
+
+    private static int countOnes(int[] line) {
+        int counter = 0;
+
+        for (int i = 0; i < line.length; i++) {
+            if (line[i] == 1) {
+                counter++;
+            }
+        }
+        return counter;
+    }
 
 }
