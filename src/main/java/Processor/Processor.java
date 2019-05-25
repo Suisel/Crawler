@@ -27,7 +27,43 @@ public class Processor {
     private static String[] linkVector;
     private static int[] ticVector;
     private static int[] lVector;
+    private static int[][] linkMatrix;
     private static int permutationCounter = 0;
+
+    private int[][] result34 = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1},
+            {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0}};
 
 
     public static void main(String[] args) throws SQLException {
@@ -35,24 +71,84 @@ public class Processor {
         List<Linker> linkers = testIfDuplicate(gazpromOutgoingLinks);
 
         List<Linker> correctOutgoingLinks = getCorrectOutgoingLinks(getAllLinksFromDb());
-        int[][] linkMatrix = createLinkMatrix(correctOutgoingLinks);
+        linkMatrix = createLinkMatrix(correctOutgoingLinks);
 
         createTICVector();
         createLVector();
 
-        int[][] rebuildMatrix = rebuildMatrix(linkMatrix);
+        cleanupTICZeroes();
+        cleanupLinkMatrix();
 
-        for (int i = 0; i < linkVector.length; i++) {
-            System.out.println(linkVector[i] + " " + lVector[i]);
-        }
-
-        for (int i = 0; i < rebuildMatrix.length; i++) {
+        for (int i = 0; i < linkMatrix.length; i++) {
             System.out.println();
-            for (int j = 0; j < rebuildMatrix.length; j++) {
-                System.out.println(rebuildMatrix[i][j] + " ");
+            for (int j = 0; j < linkMatrix.length; j++) {
+                System.out.print(linkMatrix[i][j] + " ");
             }
         }
 
+//        int[][] linkMatrix2 = new int[34][34];
+//        for (int i = 0; i < 34; i++) {
+//            for (int j = 0; j < 34; j++) {
+//                linkMatrix2[i][j] = linkMatrix[i][j];
+//            }
+//        }
+//        linkMatrix = linkMatrix2;
+
+        //int[][] rebuildMatrix = rebuildMatrix(linkMatrix);
+
+      /*  for (int i = 0; i < linkVector.length; i++) {
+            System.out.println(linkVector[i] + " " + lVector[i]);
+        }*/
+
+//        for (int i = 0; i < rebuildMatrix.length; i++) {
+//            System.out.println();
+//            for (int j = 0; j < rebuildMatrix.length; j++) {
+//                System.out.print(rebuildMatrix[i][j] + " ");
+//            }
+//        }
+
+    }
+
+    private static void cleanupTICZeroes() {
+
+    }
+
+    private static void cleanupLinkMatrix() {
+        int[][] cleanedMatrix;
+
+    }
+
+    private static void deleteRows(List<Integer> indexes) {
+        String[] newLinkVector = new String[linkVector.length - indexes.size()];
+        int[] newTicVector = new int[ticVector.length - indexes.size()];
+        int[] newLVector = new int[lVector.length - indexes.size()];
+        int[][] newLinkMatrix = new int[linkMatrix.length - indexes.size()][linkMatrix.length - indexes.size()];
+
+        int currentIndex = 0;
+
+        for (int i = 0; i < linkVector.length; i++) {
+            if (!indexes.contains(i)) {
+
+                newLinkVector[currentIndex] = linkVector[i];
+                newTicVector[currentIndex] = ticVector[i];
+                newLVector[currentIndex] = lVector[i];
+
+                int currentIndexj = 0;
+                for (int j = 0; j < linkVector.length; j++) {
+                    if (!indexes.contains(j)) {
+                        newLinkMatrix[currentIndex][currentIndexj] = linkMatrix[i][j];
+                        currentIndexj++;
+                    }
+                }
+
+                currentIndex++;
+            }
+        }
+
+        linkVector = newLinkVector;
+        ticVector = newTicVector;
+        lVector = newLVector;
+        linkMatrix = newLinkMatrix;
     }
 
     private static List<Linker> getAllLinksFromDb() throws SQLException {
@@ -160,6 +256,11 @@ public class Processor {
                 }
             }
         }
+        int[] ticVector2 = new int[34];
+        for (int i = 0; i < 34; i++) {
+            ticVector2[i] = ticVector[i];
+        }
+        ticVector = ticVector2;
     }
 
     private static void createLVector() throws SQLException {
@@ -174,6 +275,11 @@ public class Processor {
                 }
             }
         }
+        int[] lVector2 = new int[34];
+        for (int i = 0; i < 34; i++) {
+            lVector2[i] = lVector[i];
+        }
+        lVector = lVector2;
     }
 
     private static double getKCoefValue(int[][] linkMatrix) {
@@ -323,6 +429,7 @@ public class Processor {
         for (int i = 0; i < matrix.length; i++) {
             doBinaryPermutation(new int[matrix.length], matrix.length, countOnes(buildedMatrix[i]),
                     buildedMatrix, optimizedMatrix, i);
+            System.out.println(i);
         }
 
         return optimizedMatrix;
@@ -330,7 +437,7 @@ public class Processor {
 
     private static void doBinaryPermutation(int[] line, int size, int onesNum,
                                             int[][] buildedMatrix, int[][] optimizedMatrix, int rowNum) {
-        System.out.println(permutationCounter++);
+        //System.out.println(permutationCounter++);
         if (size == 0) {
             if (countOnes(line) == onesNum) {
                 for (int j = 0; j < line.length; j++) {
@@ -360,6 +467,7 @@ public class Processor {
                 for (int j = 0; j < line.length; j++) {
                     newLineOne[j] = line[j];
                 }
+
                 newLineOne[newLineOne.length - size] = 1;
                 doBinaryPermutation(newLineOne, size - 1, onesNum, buildedMatrix, optimizedMatrix, rowNum);
             }
@@ -367,7 +475,7 @@ public class Processor {
     }
 
     private static void doCalcluation(int[][] buildedMatrix, int[][] optimizedMatrix) {
-        if (calculateFunctional(buildedMatrix) < calculateFunctional(optimizedMatrix)) {
+        if (calculateFunctional(buildedMatrix) < calculateFunctional(optimizedMatrix) && isDiagonalEmpty(buildedMatrix)) {
             for (int i = 0; i < buildedMatrix.length; i++) {
                 for (int j = 0; j < buildedMatrix.length; j++)
                     optimizedMatrix[i][j] = buildedMatrix[i][j];
@@ -380,6 +488,15 @@ public class Processor {
         }
     }
 
+    private static boolean isDiagonalEmpty(int[][] matrix) {
+        boolean flag = true;
+        for (int j = 0; j < matrix.length; j++) {
+            if (matrix[j][j] != 0)
+                flag = false;
+        }
+        return flag;
+    }
+
     private static int countOnes(int[] line) {
         int counter = 0;
 
@@ -389,6 +506,14 @@ public class Processor {
             }
         }
         return counter;
+    }
+
+    private static int[][] parseResult(String result, int size) {
+        int[][] parsedMatrix = new int[size][size];
+        for (int i=0; i < size; i++) {
+
+        }
+        return parsedMatrix;
     }
 
 }
