@@ -1,3 +1,5 @@
+package crawler;
+
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
@@ -6,11 +8,11 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class Controller {
 
-    final static int MAX_CRAWL_DEPTH = 4;
+    final static int MAX_CRAWL_DEPTH = -1;
     final static int NUMBER_OF_CRAWELRS = 10;
     final static String CRAWL_STORAGE = "/home/elavelina/Desktop/crawlResults";
     final static String CRAWL_STORAGE_FILE = "/home/elavelina/Desktop/output0.txt";
-    final static String SEED_URL = "http://www.gazprom.ru/";
+    final static String SEED_URL = "http://www.gazprom.com/";
 
     public static void main(String[] args) throws Exception {
 
